@@ -268,46 +268,76 @@ public class HospitalGUI extends javax.swing.JFrame {
         }
         
         if(errors.isEmpty()){
-            //Removes the last character of the sample ID input (will be a comma), then splits by commas
-            String sampleChomped = chompLastChar(sample);
-            ArrayList sampleIDs= new ArrayList(Arrays.asList(sampleChomped.split(",")));
-            
-            //stores the Date and Time
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            Date date = new Date();
-            
-            try{
-                String headers = "First name,Last name,Department,Sample ID,E-mail address,Transaction type,Date and Time\n";
-    		File file = new File("Sample Records.csv");
-    		//if file doesnt exists, then create it
-    		if(!file.exists()){
-    			file.createNewFile();
-                        FileWriter fileWrite = new FileWriter(file.getName(),true);
-                        BufferedWriter bufferWrite = new BufferedWriter(fileWrite);
-                        bufferWrite.write(headers);
-                        bufferWrite.close();
-                        System.out.println("Created file and added headers!");
-    		}
-    		//true = append file
-    		FileWriter fileWritter = new FileWriter(file.getName(),true);
-    	        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-                //bufferWritter.write(headers);
-                for(int z = 0; z < sampleIDs.size(); z++){
-                    String data = first+','+last+','+department+','+sampleIDs.get(z)+','+email+','+radioText+','+dateFormat.format(date)+"\n";
-                    bufferWritter.write(data);
-                }
-    	        bufferWritter.close();
-	        System.out.println("Done appending yoooo");
-            }catch(IOException e){
-    		e.printStackTrace();
+            String confirmation = "The following list of samples has been scanned:\n";
+            String scannedSamples = "";
+            if (sample.substring(sample.length() -1) == ","){
+                sample = chompLastChar(sample);
             }
+            int dupCounter = 0;
+            ArrayList<String> sampleIDs = new ArrayList<>(Arrays.asList(sample.split(",")));
+            
+            for (int k = 0; k < sampleIDs.size(); k++) {
+	    scannedSamples = scannedSamples + sampleIDs.get(k) + "\n";
+            }
+            
+            confirmation = confirmation + scannedSamples;
+            for(int i = 0; i < sampleIDs.size(); i++){
+                for (int j = i+1; j < sampleIDs.size(); j++) {
+                    if (sampleIDs.get(i).equals(sampleIDs.get(j))){
+                        System.out.println("There is a duplicate!");
+                        sampleIDs.remove(j);
+                        dupCounter++;
+                    }
+                }
+            }
+            if (dupCounter == 0){
+                confirmation = confirmation + "No duplicates were found, would you like to continue?";
+            }else{
+                confirmation = confirmation + dupCounter + " duplicate(s) were found and will be removed, would you like to continue?";
+            }
+            int response = JOptionPane.showConfirmDialog(null, confirmation, "Confirm",
+            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (response == JOptionPane.YES_OPTION) {
+                System.out.println("Yes selected, continue");
+                JOptionPane.showMessageDialog(null, "Thank you for your entry, a confirmation email will be sent.", "Message", 
+                        JOptionPane.PLAIN_MESSAGE);
+
+                //stores the Date and Time
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                Date date = new Date();
+
+                try{
+                    String headers = "First name,Last name,Department,Sample ID,E-mail address,Transaction type,Date and Time\n";
+                    File file = new File("Sample Records.csv");
+                    //if file doesnt exists, then create it
+                    if(!file.exists()){
+                            file.createNewFile();
+                            FileWriter fileWrite = new FileWriter(file.getName(),true);
+                            BufferedWriter bufferWrite = new BufferedWriter(fileWrite);
+                            bufferWrite.write(headers);
+                            bufferWrite.close();
+                            System.out.println("Created file and added headers!");
+                    }
+                    //true = append file
+                    FileWriter fileWritter = new FileWriter(file.getName(),true);
+                    BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+                    //bufferWritter.write(headers);
+                    for(int z = 0; z < sampleIDs.size(); z++){
+                        String data = first+','+last+','+department+','+sampleIDs.get(z)+','+email+','+radioText+','+dateFormat.format(date)+"\n";
+                        bufferWritter.write(data);
+                    }
+                    bufferWritter.close();
+                    System.out.println("Done appending yoooo");
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }   
         }else{
             String errorList = "";
             for (int i = 0; i < errors.size(); i++) {
 	    errorList = errorList + errors.get(i);
             }
-            JOptionPane.showMessageDialog(null, errorList,
-					    "Input error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, errorList, "Input error", JOptionPane.ERROR_MESSAGE);
         }
         
     }//GEN-LAST:event_submitActionPerformed
